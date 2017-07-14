@@ -4,3 +4,4 @@ target/
 .cache-tests
 .classpath
 .project
+.idea
