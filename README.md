@@ -1,4 +1,4 @@
-Shapeless CSV
+YASimpleCSV (Yet Another Simple CSV Parser)
 =========================
 
 A boilerplate-free CSV parser using shapeless with Option and automatic header derivation for Scala case classes.
