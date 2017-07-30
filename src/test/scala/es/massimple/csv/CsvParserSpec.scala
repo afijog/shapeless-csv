@@ -9,6 +9,7 @@ import scala.util.Try
 
 trait Invalid
 case class Test(s: String, i: Int, d: Double)
+case class OptionHolder(id: Int, o1: Option[Test])
 
 class CsvParserSpec extends WordSpec with Matchers with OptionValues with TestFixtures {
   "A CsvParser" should {
@@ -289,5 +290,27 @@ class CsvParserSpec extends WordSpec with Matchers with OptionValues with TestFi
         Right(DateHolder(new DateTime("2017-07"))),
         Right(DateHolder(new DateTime("2017-08"))))
     }
+  }
+
+  "parse line of Option[CaseClass] is None" in {
+    val parsedTests = CsvParser[OptionHolder].parse("1,,,")
+    parsedTests should contain only (Right(OptionHolder(1, None)))
+  }
+
+  "parse line of Option[CaseClass] is Some(_)" in {
+    val parsedTests = CsvParser[OptionHolder].parse("1,string,1,2.0")
+    parsedTests should contain only (Right(OptionHolder(1, Some(Test("string", 1, 2.0)))))
+  }
+
+  "parse line of Option[CaseClass] with error" in {
+    val parsedCsv = CsvParser[OptionHolder].parse("1,string,1a,2")
+    parsedCsv should contain (Left(s"Cannot parse [1a] to Int"))
+  }
+
+  "convert to CSV when Option[CaseClass] is None" in {
+    val o = OptionHolder(1, None)
+    val expected = "1,,,"
+    val actual = CsvParser[OptionHolder].to(o)
+    expected shouldEqual actual
   }
 }

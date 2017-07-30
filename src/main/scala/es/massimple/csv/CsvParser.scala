@@ -77,21 +77,17 @@ object CsvParser {
     */
   implicit def optionParser[T](implicit parser: CsvParser[T], typ: Typeable[T]) : CsvParser[Option[T]] = new CsvParser[Option[T]] {
     def parse(cells: List[Cell]): ParseResult[Option[T]] = {
-      cells match {
-        case head +: Nil => {
-          if (head.isEmpty) Right(None)
-          else {
-            val maybeParsed: ParseResult[T] = parser.parse(cells)
-            maybeParsed.right.map(Option(_))
-          }
-        }
-        case _ =>
-          Left(s"Cannot parse [${cells.mkString(",")}] to Option[${typ.describe}]")
+      if (cells.size != size) Left(s"Cannot parse [${cells.mkString(",")}] to Option[${typ.describe}]")
+      else if (cells.forall { _.isEmpty}) Right(None)
+      else {
+        val maybeParsed: ParseResult[T] = parser.parse(cells)
+        maybeParsed.right.map(Option(_))
       }
     }
-    def size = 1
-    def to(t: Option[T]): String = t.map(parser.to).getOrElse("")
-    val header = List.empty
+    def size = parser.size
+    val emptyRepr : String = (1 to size).map(_ => "").mkString(",")
+    def to(t: Option[T]): String = t.map(parser.to).getOrElse(emptyRepr)
+    val header = parser.header
   }
 
   def defaultStringifier[T] : Stringifier[T] = s => s.toString
